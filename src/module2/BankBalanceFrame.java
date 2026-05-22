@@ -27,14 +27,20 @@ public class BankBalanceFrame extends JFrame implements ActionListener {
     private JButton quitButton;							// Button to perform dispose()
 
     public BankBalanceFrame() {
-        // Implement GridBag and Layout
-    	// Implement number format	
+        GridBagConstraints layoutConst = null;
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance();
         setTitle("Bank Balance");
-        // Implement Fields
+        // Input fields
+        initialBalanceField = new JFormattedTextField(currencyFormat);
+        initialBalanceField.setValue(500.00);
+        amountField = new JFormattedTextField(currencyFormat);
+        amountField.setValue(0.00);
 
-        // JPanel to show balance
+        // JPanel that will show the balance when button is pressed
         balancePanel = new JPanel();
-        	// Add labels
+        balanceDisplayLabel = new JLabel("Balance will appear here");
+        balancePanel.add(new JLabel("Current Balance: "));
+        balancePanel.add(balanceDisplayLabel);
 
         // Buttons
         initializeBalanceButton = new JButton("Set Initial Balance");
@@ -49,62 +55,87 @@ public class BankBalanceFrame extends JFrame implements ActionListener {
         showBalanceButton.addActionListener(this);
         quitButton.addActionListener(this);
 
+        // Layout
+        setLayout(new GridBagLayout());
 
         // Row 0: Initial Balance
-        //To Do: set spacing and constraints
+        layoutConst = new GridBagConstraints();
+        layoutConst.insets = new Insets(10, 10, 5, 10);
+        layoutConst.gridx = 0; 
+        layoutConst.gridy = 0;
         add(new JLabel("Initial Balance:"), layoutConst);
-        // Add balance field
+        
+        layoutConst.gridx = 1; // Reuse gridy until next row
         add(initialBalanceField, layoutConst);
 
-        // Add BalanceButton
+        layoutConst.gridx = 2;
         add(initializeBalanceButton, layoutConst);
 
         // Row 1: Amount input
-        //To Do: set spacing and constraints
+        layoutConst = new GridBagConstraints();
+        layoutConst.insets = new Insets(10, 10, 5, 5);
+        layoutConst.gridx = 0; 
+        layoutConst.gridy = 1;
         add(new JLabel("Amount:"), layoutConst);
 
+        layoutConst.gridx = 1;
         add(amountField, layoutConst);
 
         // Row 2: Deposit/Withdraw/Show Balance buttons
-        //To Do: set spacing and constraints
+        layoutConst = new GridBagConstraints();
+        layoutConst.insets = new Insets(5, 5, 5, 5);
+        layoutConst.gridx = 0; layoutConst.gridy = 2;
         add(depositButton, layoutConst);
 
+        layoutConst.gridx = 1;
         add(withdrawButton, layoutConst);
 
+        layoutConst.gridx = 2;
         add(showBalanceButton, layoutConst);
 
         // Row 3: JPanel for balance display
-        //To Do: set spacing and constraints
+        layoutConst = new GridBagConstraints();
+        layoutConst.insets = new Insets(15, 10, 10, 10);
+        layoutConst.gridx = 0; 
+        layoutConst.gridy = 3;
+        layoutConst.gridwidth = 3;
         add(balancePanel, layoutConst);
 
         // Quit button
-        //To Do: set spacing and constraints
+        layoutConst = new GridBagConstraints();
+        layoutConst.insets = new Insets(10, 10, 10, 10);
+        layoutConst.gridx = 2; 
+        layoutConst.gridy = 4;
         add(quitButton, layoutConst);
     }
-    
-    // ActionEvent implementation
+
     @Override
     public void actionPerformed(ActionEvent event) {
         JButton source = (JButton) event.getSource();
         double amount = ((Number) amountField.getValue()).doubleValue();
-        // Initialize balance
+        // Initialize Balance
         if (source == initializeBalanceButton) {
             double initial = ((Number) initialBalanceField.getValue()).doubleValue();
             account = new BankAccount(initial);
             JOptionPane.showMessageDialog(this, "Initial balance set successfully!");
         }
-        
-        // Deposit
+        // Make Deposit
         else if (source == depositButton) {
+            if (account == null) {
+                JOptionPane.showMessageDialog(this, "Set initial balance first!");
+                return;
+            }
             if (amount > 0) {
                 account.deposit(amount);
                 JOptionPane.showMessageDialog(this, "Deposit successful!");
             }
         }
-        
-        // Withdraw
+        // Make Withdrawl
         else if (source == withdrawButton) {
-
+            if (account == null) {
+                JOptionPane.showMessageDialog(this, "Set initial balance first!");
+                return;
+            }
             if (amount > 0) {
                 if (amount <= account.getBalance()) {
                     account.withdraw(amount);
@@ -114,18 +145,25 @@ public class BankBalanceFrame extends JFrame implements ActionListener {
                 }
             }
         }
-        
-        // Show Balance
+        // Display Balance
         else if (source == showBalanceButton) {
+            if (account == null) {
+                JOptionPane.showMessageDialog(this, "Set initial balance first!");
+                return;
+            }
             // Display balance inside the JPanel
             balanceDisplayLabel.setText(
                 NumberFormat.getCurrencyInstance().format(account.getBalance())
             );
         }
-        
-        // Quit
+        // Quit (Displays balance on exit)
         else if (source == quitButton) {
-        	JOptionPane.showMessageDialog(this, "Remaining Balance: " + NumberFormat.getCurrencyInstance().format(account.getBalance()));
+            if (account != null) {
+                JOptionPane.showMessageDialog(this,
+                    "Remaining Balance: " +
+                    NumberFormat.getCurrencyInstance().format(account.getBalance()) +
+                    "\n\nThank you!");
+            }
             dispose();
         }
     }
